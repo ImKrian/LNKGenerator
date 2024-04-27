@@ -36,7 +36,11 @@ For some reason, the generation of LNKs is failing on some machines if we don't 
 
 If attachments are used the generated LNK will use powershell.
 
+## Limitations
+Powershell cannot be used as the parent interpreter for the attachment option
+
 # TODO
+- [ ] Check how command + Attachments interact...
 - [ ] Fix attachment execution With Powershell (Command cannot be executed due to errors during scaping...)
 - [ ] Allow to define path to extract attached files
 - [ ] Add option to encrypt attached items
