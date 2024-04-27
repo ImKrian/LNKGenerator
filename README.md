@@ -28,7 +28,7 @@ python3 LNKGenerator.py file.lnk -c 'echo 4278278 > %temp%\\password.txt & start
 
 Generate a LNK with two files attached that will be extracted and executed. Files previously exist.
 ```
-python3 LNKGenerator.py file.lnk -a file.pdf -a script.bat
+python3 LNKGenerator.py -a DummyFiles\FILE.pdf -a DummyFiles\script.bat
 ```
 
 ## Remarks
