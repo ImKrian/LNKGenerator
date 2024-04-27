@@ -49,6 +49,6 @@ No sé en qué momento tengo caracteres no válidos en ASCII, porque la pregunta
 - Con tantos parámetros lo mejor sería usar un Config file y pasarselo... Un JSON... Así más fácil añadir también ficheros a acoplar y donde exportarlos y claves encriptación y más items asociados a estos. Y booleanos y demás.
 - Rethink loops to improve efficiency. Maybe size calculation and placeholder replacement can be done at the same time...
 - Can I combine a command with attachment files???- Ficheros incrustados por defecto los abrirá... pero estaría bien poner opción para definir el comportamiento...
-
+- Arreglar ejecución con Powershell. 
 
 Esto hace algo parecido: https://github.com/tommelo/lnk2pwn/tree/master
